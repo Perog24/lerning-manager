@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
+import LoginForm from './components/loginForm';
+import { url } from './constants/constants';
 
-const url = "http://localhost:3001";
 function App() {
-  const [data, setData] = useState({message: ""});
+  const [data, setData] = useState();
   
   useEffect(() => {
-    axios.get(url+'/data').then((response) => {
-      setData(response.data);
+    axios.get(url+'/').then((response) => {
+      setData(response.data.message);
     })
     .catch((error) => {
       console.error(error);
@@ -18,10 +19,9 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">        
-        <h1>Першa сторінка застосунку</h1>
-        <p>{data.message}</p>
-        
+        <h6>{data}</h6>        
       </header>
+        <LoginForm/>
     </div>
   );
 }

@@ -11,18 +11,46 @@ datasource db {
   relationMode = "prisma"
 }
 
-model Users {
-  id Int @id @default(autoincrement())
-  name String
-  password String
-  goals Goals[] 
-
+model User {
+  id         Int      @id @default(autoincrement())
+  username   String
+  email      String   @unique
+  password   String
+  surveys    Survey[]
+  responses  Response[]
 }
 
-model Goals {
-  id Int @id @default(autoincrement()) 
-  name String
-  autorID Int
-  autor Users @relation(fields: [autorID], references: [id])
-  @@index([autorID])
+model Survey {
+  id          Int      @id @default(autoincrement())
+  title       String
+  questions   Question[]
+  creator     User?    @relation(fields: [creatorId], references: [id])
+  creatorId   Int?
+
+  @@index([creatorId])
 }
+
+
+model Question {
+  id         Int       @id @default(autoincrement())
+  text       String
+  surveyId   Int
+  survey     Survey    @relation(fields: [surveyId], references: [id])
+  responses  Response[]
+
+  @@index([surveyId])
+}
+
+model Response {
+  id            Int       @id @default(autoincrement())
+  text          String
+  questionId    Int
+  question      Question   @relation(fields: [questionId], references: [id])
+  respondent    User?      @relation(fields: [respondentId], references: [id])
+  respondentId  Int?
+
+  @@index([respondentId])
+  @@index([questionId])
+}
+
+
