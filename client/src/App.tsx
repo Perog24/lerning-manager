@@ -22,6 +22,7 @@ function App() {
         <h6>{data}</h6>        
       </header>
         <LoginForm/>
+        
     </div>
   );
 }

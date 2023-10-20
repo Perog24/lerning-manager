@@ -18,6 +18,7 @@ model User {
   password   String
   surveys    Survey[]
   responses  Response[]
+  @@index([email])
 }
 
 model Survey {
