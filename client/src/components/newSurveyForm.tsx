@@ -4,7 +4,6 @@ import { url } from '../constants/constants';
 
 const CreateSurvey = (props: { id: string | undefined }) => {
   const { id } = props;
-
   const [surveyData, setSurveyData] = useState({
     title: '',
     questions: [{ text: '', options: [''] }],
