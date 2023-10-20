@@ -2,6 +2,7 @@ import axios from 'axios';
 import React, { useState } from 'react';
 import { url } from '../constants/constants';
 import bcrypt from 'bcryptjs';
+import { useNavigate, useNavigation} from 'react-router-dom'; 
 
 interface User {
   userName: string;
@@ -14,24 +15,37 @@ const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   // const [users, setUsers] = useState<User[]>([]);
+  let navigate = useNavigate();
 
-  // const handleLogin = () => {
-  //   // Перевірка існування користувача з введеним email та password
-  //   const user = users.find((u) => u.email === email && u.password === password);
-
-  //   if (user) {
-  //     alert('Ви увійшли до системи');
-  //   } else {
-  //     alert('Неправильний email або пароль');
-  //   }
-  // };
+  const handleLogin = async(e: { preventDefault: () => void; }) => {
+    e.preventDefault();
+    try {
+   const user: User =  { userName, email, password};
+    const response = await axios.post(url+'/users/login', user)
+    if (response.status === 200) {
+      console.log(response.data);
+      
+     return navigate(`/main/${response.data.data}`);
+    }
+    if (response.status === 201) {
+      console.log("Worked");    
+      alert('Неправильний email або пароль');
+      setUserName("");
+      setEmail("");
+      setPassword("");
+      return;
+    }
+  } catch (error) {
+    console.error("Error logining", error);
+  }
+  };
 
   const handleRegister = async () => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds)
     // Додавання нового користувача
     const newUser: User = { userName, email, password: hashedPassword };
-    axios.post(url+'/users/', newUser);
+    axios.post(url+'/users', newUser);
     // setUsers([...users, newUser]);
   };
 
@@ -59,7 +73,7 @@ const LoginForm: React.FC = () => {
         onChange={(e) => setPassword(e.target.value)}
         autoComplete="current-password"
       />
-      <button >Увійти</button>
+      <button onClick={handleLogin} >Увійти</button>
       <button onClick={handleRegister}>Зареєструватися</button>
       </form>      
     </div>
