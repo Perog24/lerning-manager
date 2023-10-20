@@ -29,20 +29,33 @@ if (surveys.length > 0) {
 }
 });
 
-app.post('/surveys', async (req, res) => {
+app.post('/surveys/:id', async (req, res) => {
   try {
-    const { title, questions, creatorId } = req.body;
+    const { title, questions} = req.body;
+    const {id} = req.params;
+    const creatorId = parseInt(id, 10);
+    console.log("id", id);
+    console.log("title", title);
+    console.log("questions", questions);
+    
 
     const survey = await prisma.survey.create({
       data: {
         title,
         creatorId,
         questions: {
-          create: questions.map((questionText: string) => {
+          create: questions.map((questionData: {options: string[]; text: string; 
+}) => {
+            const questionText = questionData.text;
+            const answers = questionData.options || [];
             return {
               text: questionText,
-              responses: { // Додайте порожній масив відповідей для кожного питання
-                create: [],
+              responses: {
+                create: answers.map((answer) => {
+                  return {
+                    text: answer
+                  }
+                })
               },
             };
           }),
