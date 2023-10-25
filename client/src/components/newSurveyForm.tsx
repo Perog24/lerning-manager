@@ -66,7 +66,7 @@ const CreateSurvey = (props: { id: string | undefined }) => {
       questions
     };
 
-    // Відправлення запиту на сервер
+   
     axios
       .post(url+`/surveys/${id}`, survey)
       .then((response) => {

@@ -1,24 +1,36 @@
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { url } from "../constants/constants";
-import { useEffect, useState } from "react"; // Додавання useEffect та useState
+import { useEffect, useState } from "react";
 import CreateSurvey from "./newSurveyForm";
+
 interface Survey {
+  id: number;
+  title: string;
+  creator: string;
+  creatorId: number;
+  questions?: {
    id: number;
-   title: string;
-   creator: string;
-   creatorId: number;
-   questions: string[];
+   text: string;
+   surveyId: number;
+   responses?:{
+      id: number;
+      text: string;
+      respondentId: number;
+   }[];
+  }[];
 }
+
 function MainPage() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [surveys, setSurveys] = useState<Survey[]>([]); // Стан для збереження опитувань
-  const [isCreateSurveyVisible, setIsCreateSurveyVisible] = useState(false); 
+  const [surveys, setSurveys] = useState<Survey[]>([]);
+  const [selectedSurvey, setSelectedSurvey] = useState<Survey | null>(null);
+  const [isCreateSurveyVisible, setIsCreateSurveyVisible] = useState(false);
 
   useEffect(() => {
     axios
-      .get(url + `/surveys/${id}`)
+      .get(url + `/surveys/user/${id}`)
       .then((response) => {
         if (response.status === 200) {
           setSurveys(response.data.surveys);
@@ -29,12 +41,20 @@ function MainPage() {
       .catch((error) => {
         console.error("Помилка отримання опитувань", error);
       });
-  }, [id]); 
+  }, [id]);
 
-function CreateSurveyVisible () {
- setIsCreateSurveyVisible(!isCreateSurveyVisible)
-
-}
+  async function surveyDetails(id: number) {
+    try {
+      const response = await axios.get(url + `/survey/${id}`);
+      if (response.status === 200) {
+        setSelectedSurvey(response.data);
+      } else {
+        console.error("Помилка отримання опитування");
+      }
+    } catch (error) {
+      console.error("Помилка отримання опитування", error);
+    }
+  }
 
   return (
     <div className="main-page">
@@ -43,14 +63,42 @@ function CreateSurveyVisible () {
       <div className="surveys-div">
         {surveys.length > 0 ? (
           surveys.map((survey) => (
-            <h4 key={survey.id}>{survey.title}</h4> 
+            <h4 key={survey.id} onClick={() => surveyDetails(survey.id)}>
+              {survey.title}
+            </h4>
           ))
         ) : (
           <p>Немає опитувань</p>
         )}
       </div>
-      {isCreateSurveyVisible && <CreateSurvey id={id}/>}
-      <button className="create-surveys-button" onClick={CreateSurveyVisible}>{!isCreateSurveyVisible ? "Створити опитування" : "Відмінити" }</button>
+      {isCreateSurveyVisible && <CreateSurvey id={id} />}
+      <button
+        className="create-surveys-button"
+        onClick={() => setIsCreateSurveyVisible(!isCreateSurveyVisible)}
+      >
+        {!isCreateSurveyVisible ? "Створити опитування" : "Відмінити"}
+      </button>
+      {selectedSurvey && (
+  <div>
+    <h4>{selectedSurvey.title}</h4>
+    <p>Автор ID: {selectedSurvey.creatorId}</p>
+    <ul>
+  {selectedSurvey.questions && selectedSurvey.questions.map((question, index) => (
+    <li key={index}>{question.text}
+      {question.responses && (
+        <ul>
+          {question.responses.map((response, responseIndex) => (
+            <li key={responseIndex}>{response.text}</li>
+          ))}
+        </ul>
+      )}
+    </li>
+  ))}
+</ul>
+
+  </div>
+)}
+
     </div>
   );
 }
