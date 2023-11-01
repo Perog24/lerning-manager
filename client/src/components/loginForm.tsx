@@ -22,8 +22,8 @@ const LoginForm: React.FC = () => {
    const user: Partial<User> =  {email, password};
     const response = await axios.post(url+'/login', user)
     if (response.status === 200) {
-      console.log(response.data);      
-     return navigate(`/main/${response.data.data}`);
+      console.log('response-data', response.data);      
+     return navigate(`/main/${response.data.id}`);
     }
     if (response.status === 201) {
       console.log("Worked");    

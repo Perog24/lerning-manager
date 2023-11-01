@@ -46,7 +46,10 @@ router.get('/survey/:id', async (req, res) => {
      res.status(500).json({ error: 'Помилка при отриманні інформації про опитування' });
    }
  });
-
+router.get('/users', async (req, res) => {
+  const users = await prisma.user.findMany();
+  res.status(200).json({users: users});
+})
 router.post('/users', (req, res) => {
    const newUser = req.body;
    console.log("newUser: ", newUser);

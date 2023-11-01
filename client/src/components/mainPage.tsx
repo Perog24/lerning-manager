@@ -41,7 +41,7 @@ function MainPage() {
       .catch((error) => {
         console.error("Помилка отримання опитувань", error);
       });
-  }, [id]);
+  }, [id, surveys.length]);
 
   async function surveyDetails(id: number) {
     try {
