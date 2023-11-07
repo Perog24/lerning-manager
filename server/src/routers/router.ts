@@ -4,10 +4,11 @@ import { Router } from 'express';
 const router = Router();
 const prisma = new PrismaClient();
 
+// перевірка відповіді сервера
 router.get('/', (req, res) => {
    res.json({message:'Сервер працює'});
  });
-
+// пошук опитуваннь користувача
  router.get('/surveys/user/:id', async (req, res) => {
    const id = parseInt(req.params.id);
    const surveys = await prisma.survey.findMany({
@@ -20,6 +21,22 @@ router.get('/', (req, res) => {
  }
  });
 
+// пошук всіх опитувань
+router.get('/surveys', async (req, res) => {
+  try {
+    const allSurveys = await prisma.survey.findMany();
+    if (allSurveys) {
+      res.status(200).json( {allSurveys: allSurveys});
+    } else {
+      res.status(404).json({message: 'Опитування не знайдені'});
+    }
+  } catch (error) {
+      console.error('Помилка при отриманні інформації про опитування', error);
+      res.status(500).json({ error: 'Помилка при отриманні інформації про опитування' });
+  }
+  });
+
+// пошук опитування за id
 router.get('/survey/:id', async (req, res) => {
    const id = parseInt(req.params.id);
    try {
@@ -55,7 +72,13 @@ router.post('/users', (req, res) => {
    console.log("newUser: ", newUser);
    
    res.status(200).json({message:'Completed',newUser: newUser});
- })
+ });
+
+ //answers for test
+ router.get('/answers', async (req, res) => {
+  const answers = await prisma.response.findMany();
+  res.status(200).json({answers: answers})
+ });
 
  router.post('/surveys/:id', async (req, res) => {
    try {

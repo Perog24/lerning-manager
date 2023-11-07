@@ -1,7 +1,6 @@
 import axios from 'axios';
 import React, { useState } from 'react';
 import { url } from '../constants/constants';
-import bcrypt from 'bcryptjs';
 import { useNavigate} from 'react-router-dom'; 
 
 interface User {
@@ -21,11 +20,11 @@ const LoginForm: React.FC = () => {
     try {
    const user: Partial<User> =  {email, password};
     const response = await axios.post(url+'/login', user)
-    if (response.status === 200) {
+    if (response.data) {
       console.log('response-data', response.data);      
      return navigate(`/main/${response.data.id}`);
     }
-    if (response.status === 201) {
+    else {
       console.log("Worked");    
       alert('Неправильний email або пароль');
       setUserName("");
@@ -38,13 +37,25 @@ const LoginForm: React.FC = () => {
   }
   };
 
-  const handleRegister = async () => {
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds)
-    // Додавання нового користувача
-    const newUser: User = { userName, email, password: hashedPassword };
-    axios.post(url+'/users', newUser);
-    // setUsers([...users, newUser]);
+  const handleRegister = async (e:{preventDefault: () => void;}) => {
+    e.preventDefault();
+    try {
+      const newUser: User = {userName, email, password};
+      const response = await axios.post(url+`/register`,newUser);
+      if (response.status === 201) {
+        return navigate(`/main/${response.data.id}`);
+      }
+      if (response.status === 403){
+        console.log("Emailm вже існує");    
+      alert('Email вже існує');
+      setUserName("");
+      setEmail("");
+      setPassword("");
+      return;
+      }
+    } catch (error) {
+      console.error("Error registration", error);
+    }
   };
 
   return (
