@@ -24,7 +24,8 @@ interface Survey {
 function MainPage() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [surveys, setSurveys] = useState<Survey[]>([]);
+  const [userSurveys, setUserSurveys] = useState<Survey[]>([]);
+  const [allSurveys, setAllSurveys] = useState<Survey[]>([]);
   const [selectedSurvey, setSelectedSurvey] = useState<Survey | null>(null);
   const [isCreateSurveyVisible, setIsCreateSurveyVisible] = useState(false);
 
@@ -33,7 +34,7 @@ function MainPage() {
       .get(url + `/surveys/user/${id}`)
       .then((response) => {
         if (response.status === 200) {
-          setSurveys(response.data.surveys);
+          setUserSurveys(response.data.surveys);
         } else {
           console.error("Помилка отримання опитувань");
         }
@@ -41,7 +42,22 @@ function MainPage() {
       .catch((error) => {
         console.error("Помилка отримання опитувань", error);
       });
-  }, [id, surveys.length]);
+  }, [id, userSurveys.length]);
+
+  useEffect(() => {
+    axios
+      .get(url + `/surveys`)
+      .then((response) => {
+        if (response.status === 200) {
+          setAllSurveys(response.data.allSurveys);
+        } else {
+          console.error("Помилка отримання опитувань");
+        }
+      })
+      .catch((error) => {
+        console.error("Помилка отримання опитувань", error);
+      });
+  }, [id, allSurveys.length]);
 
   async function surveyDetails(id: number) {
     try {
@@ -60,9 +76,10 @@ function MainPage() {
     <div className="main-page">
       <h3>Main page</h3>
       <button onClick={() => navigate("/")}>Back</button>
-      <div className="surveys-div">
-        {surveys.length > 0 ? (
-          surveys.map((survey) => (
+      <div className=" user-surveys-div">
+        <h5>Ваші опитування</h5>
+        {userSurveys.length > 0 ? (
+          userSurveys.map((survey) => (
             <h4 key={survey.id} onClick={() => surveyDetails(survey.id)}>
               {survey.title}
             </h4>
@@ -70,6 +87,16 @@ function MainPage() {
         ) : (
           <p>Немає опитувань</p>
         )}
+      </div>
+      <div className="all-surveys-div">
+        <h5>Всі опитування</h5>
+      {allSurveys.length > 0 ? (
+        allSurveys.map((survey) =>(
+          <h4 key={survey.id}>{survey.title}</h4>
+        ))
+      ):(
+      <p>Немає опитувань</p>
+      )}
       </div>
       {isCreateSurveyVisible && <CreateSurvey id={id} />}
       <button
