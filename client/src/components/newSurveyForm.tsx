@@ -59,20 +59,16 @@ const CreateSurvey = (props: { id: string | undefined }) => {
   };
 
   const handleCreateSurvey = () => {
-    // Отримайте дані опитування з surveyData та відправте їх на сервер за допомогою Axios або Fetch.
-    // Наприклад, ось як відправити їх за допомогою Axios:
-
-    const { title, questions } = surveyData;
+       const { title, questions } = surveyData;
 
     const survey = {
       title,
-      questions,
-      creatorId: id,
+      questions
     };
 
-    // Відправлення запиту на сервер
+   
     axios
-      .post(url+'/surveys', survey)
+      .post(url+`/surveys/${id}`, survey)
       .then((response) => {
         console.log('Опитування створено:', response.data);
       })

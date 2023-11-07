@@ -1,57 +1,53 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
   relationMode = "prisma"
 }
 
 model User {
-  id         Int      @id @default(autoincrement())
-  username   String
-  email      String   @unique
-  password   String
-  surveys    Survey[]
-  responses  Response[]
+  id        Int        @id @default(autoincrement())
+  username  String
+  email     String     @unique
+  password  String
+  surveys   Survey[]
+  responses Response[]
+
   @@index([email])
 }
 
 model Survey {
-  id          Int      @id @default(autoincrement())
-  title       String
-  questions   Question[]
-  creator     User?    @relation(fields: [creatorId], references: [id])
-  creatorId   Int?
+  id        Int        @id @default(autoincrement())
+  title     String
+  creatorId Int
+  questions Question[]
+  creator   User       @relation(fields: [creatorId], references: [id])
 
   @@index([creatorId])
 }
 
-
 model Question {
-  id         Int       @id @default(autoincrement())
-  text       String
-  surveyId   Int
-  survey     Survey    @relation(fields: [surveyId], references: [id])
-  responses  Response[]
+  id        Int        @id @default(autoincrement())
+  text      String
+  surveyId  Int
+  survey    Survey     @relation(fields: [surveyId], references: [id])
+  responses Response[]
 
   @@index([surveyId])
 }
 
 model Response {
-  id            Int       @id @default(autoincrement())
-  text          String
-  questionId    Int
-  question      Question   @relation(fields: [questionId], references: [id])
-  respondent    User?      @relation(fields: [respondentId], references: [id])
-  respondentId  Int?
+  id           Int      @id @default(autoincrement())
+  text         String
+  questionId   Int
+  respondentId Int?
+  chosenCount  Int?     @default(0)
+  question     Question @relation(fields: [questionId], references: [id])
+  respondent   User?    @relation(fields: [respondentId], references: [id])
 
   @@index([respondentId])
   @@index([questionId])
 }
-
-

@@ -1,8 +1,7 @@
 import axios from 'axios';
 import React, { useState } from 'react';
 import { url } from '../constants/constants';
-import bcrypt from 'bcryptjs';
-import { useNavigate, useNavigation} from 'react-router-dom'; 
+import { useNavigate} from 'react-router-dom'; 
 
 interface User {
   userName: string;
@@ -14,20 +13,18 @@ const LoginForm: React.FC = () => {
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  // const [users, setUsers] = useState<User[]>([]);
   let navigate = useNavigate();
 
   const handleLogin = async(e: { preventDefault: () => void; }) => {
     e.preventDefault();
     try {
-   const user: User =  { userName, email, password};
-    const response = await axios.post(url+'/users/login', user)
-    if (response.status === 200) {
-      console.log(response.data);
-      
-     return navigate(`/main/${response.data.data}`);
+   const user: Partial<User> =  {email, password};
+    const response = await axios.post(url+'/login', user)
+    if (response.data) {
+      console.log('response-data', response.data);      
+     return navigate(`/main/${response.data.id}`);
     }
-    if (response.status === 201) {
+    else {
       console.log("Worked");    
       alert('Неправильний email або пароль');
       setUserName("");
@@ -40,13 +37,25 @@ const LoginForm: React.FC = () => {
   }
   };
 
-  const handleRegister = async () => {
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds)
-    // Додавання нового користувача
-    const newUser: User = { userName, email, password: hashedPassword };
-    axios.post(url+'/users', newUser);
-    // setUsers([...users, newUser]);
+  const handleRegister = async (e:{preventDefault: () => void;}) => {
+    e.preventDefault();
+    try {
+      const newUser: User = {userName, email, password};
+      const response = await axios.post(url+`/register`,newUser);
+      if (response.status === 201) {
+        return navigate(`/main/${response.data.id}`);
+      }
+      if (response.status === 403){
+        console.log("Emailm вже існує");    
+      alert('Email вже існує');
+      setUserName("");
+      setEmail("");
+      setPassword("");
+      return;
+      }
+    } catch (error) {
+      console.error("Error registration", error);
+    }
   };
 
   return (
@@ -56,6 +65,7 @@ const LoginForm: React.FC = () => {
       <input 
         type="text"
         placeholder='User Name'
+        name='username'
         value={userName}
         onChange={(e)=> setUserName(e.target.value)}
           />
@@ -69,6 +79,7 @@ const LoginForm: React.FC = () => {
       <input
         type="password"
         placeholder="Пароль"
+        name='password'
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         autoComplete="current-password"
