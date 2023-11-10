@@ -1,10 +1,6 @@
 import express from "express";
 import cors from "cors";
-import session from "express-session";
 import bodyParser from "body-parser";
-import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
-
 import authRouter from "./routers/authRouter";
 import router from "./routers/router";
 import {
@@ -15,7 +11,7 @@ import {
 
 const app = express();
 const port = process.env.PORT || 3001;
-// const prisma = new PrismaClient();
+
 const corsOptions = {
   origin: "http://localhost:3000",
   credentials: true,

@@ -4,7 +4,7 @@ import { Router } from 'express';
 const router = Router();
 const prisma = new PrismaClient();
 
-// перевірка відповіді сервера
+// перевірка відповіді сервера (тестова)
 router.get('/', (req, res) => {
    res.json({message:'Сервер працює'});
  });
@@ -74,7 +74,7 @@ router.post('/users', (req, res) => {
    res.status(200).json({message:'Completed',newUser: newUser});
  });
 
- //answers for test
+ //пошук відповідей до питань (перевіряю як додалось нове поле лічильникРазівВибору)
  router.get('/answers', async (req, res) => {
   const answers = await prisma.response.findMany();
   res.status(200).json({answers: answers})
@@ -125,5 +125,38 @@ router.post('/users', (req, res) => {
      await prisma.$disconnect();
    }
  })
+  // роут для зміни лічильника при проходженні опитування
+  router.post('/submit-response', async (req, res) => {
+    try {
+      const selectedResponses = req.body;
+  
+      // Перебираємо масив об'єктів і обробляємо кожний
+      for (const { questionId, responseId } of selectedResponses) {
+        // Отримання питання та відповіді з бази даних
+        const question = await prisma.question.findUnique({
+          where: { id: questionId },
+          include: { responses: true },
+        });
+  
+        const response = question?.responses.find((r) => r.id === responseId);
+  
+        if (response) {
+          // Збільшення chosenCount на сервері
+          await prisma.response.update({
+            where: { id: responseId },
+            data: { chosenCount: response.chosenCount + 1 },
+          });
+        } else {
+          console.error(`Відповідь або питання з id ${responseId} не знайдені`);
+        }
+      }
+  
+      res.json({ message: 'Відповіді успішно оброблені' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Помилка сервера' });
+    }
+  });
+  
 
  export default router;

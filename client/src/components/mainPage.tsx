@@ -3,8 +3,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { url } from "../constants/constants";
 import { useEffect, useState } from "react";
 import CreateSurvey from "./newSurveyForm";
+import SurveyToPass from "./surveyToPass";
 
-interface Survey {
+export interface Survey {
   id: number;
   title: string;
   creator: string;
@@ -17,6 +18,7 @@ interface Survey {
       id: number;
       text: string;
       respondentId: number;
+      chosenCount: number;
    }[];
   }[];
 }
@@ -27,7 +29,9 @@ function MainPage() {
   const [userSurveys, setUserSurveys] = useState<Survey[]>([]);
   const [allSurveys, setAllSurveys] = useState<Survey[]>([]);
   const [selectedSurvey, setSelectedSurvey] = useState<Survey | null>(null);
+  const [selectedSurveyToPass, setSelectedSurveyToPass] = useState<Survey | null>(null);
   const [isCreateSurveyVisible, setIsCreateSurveyVisible] = useState(false);
+  const [isSurveyToPassVisible, setIsSurveyToPassVisible] = useState(false);
 
   useEffect(() => {
     axios
@@ -42,7 +46,7 @@ function MainPage() {
       .catch((error) => {
         console.error("Помилка отримання опитувань", error);
       });
-  }, [id, userSurveys.length]);
+  }, [id]);
 
   useEffect(() => {
     axios
@@ -57,13 +61,15 @@ function MainPage() {
       .catch((error) => {
         console.error("Помилка отримання опитувань", error);
       });
-  }, [id, allSurveys.length]);
+  }, [id]);
 
   async function surveyDetails(id: number) {
     try {
       const response = await axios.get(url + `/survey/${id}`);
       if (response.status === 200) {
         setSelectedSurvey(response.data);
+        setIsCreateSurveyVisible(false);
+        setIsSurveyToPassVisible(false);
       } else {
         console.error("Помилка отримання опитування");
       }
@@ -71,63 +77,75 @@ function MainPage() {
       console.error("Помилка отримання опитування", error);
     }
   }
+  
+  function surveyToPassFn(survey: Survey) {
+    setSelectedSurvey(null)
+    setIsCreateSurveyVisible(false)
+    setSelectedSurveyToPass(survey);
+    setIsSurveyToPassVisible(true);
+  }
 
   return (
     <div className="main-page">
       <h3>Main page</h3>
       <button onClick={() => navigate("/")}>Back</button>
-      <div className=" user-surveys-div">
-        <h5>Ваші опитування</h5>
-        {userSurveys.length > 0 ? (
-          userSurveys.map((survey) => (
-            <h4 key={survey.id} onClick={() => surveyDetails(survey.id)}>
-              {survey.title}
-            </h4>
-          ))
-        ) : (
-          <p>Немає опитувань</p>
-        )}
+      <div className="main-div-wrapper">
+      <div className="main-div-left">
+            <div className=" user-surveys-div">
+              <h5>Ваші опитування</h5>
+              {userSurveys.length > 0 ? (
+                userSurveys.map((survey) => (
+                  <h4 key={survey.id} onClick={() => surveyDetails(survey.id)}>
+                    {survey.title}
+                  </h4>
+                ))
+              ) : (
+                <p>Немає опитувань</p>
+              )}
+            </div>
+              
+            <div className="all-surveys-div">
+              <h5>Всі опитування</h5>
+              {allSurveys.length > 0 ? (
+                allSurveys.map((survey) =>(
+                <h4 key={survey.id}  onClick= {()=> surveyToPassFn(survey)}>{survey.title}</      h4>          
+                ))
+                ):(
+                  <p>Немає опитувань</p>
+                  )}
+            </div>
+            <button
+              className="create-surveys-button"
+              onClick={() => setIsCreateSurveyVisible(!isCreateSurveyVisible)}
+            >
+              {!isCreateSurveyVisible ? "Створити опитування" : "Відмінити"}
+            </button>
+        </div>
+        <div className="main-div-right">
+          {isCreateSurveyVisible && <CreateSurvey id={id} />}
+          {selectedSurvey && (
+            <div>
+              <h4>{selectedSurvey.title}</h4>
+              <p>Автор ID: {selectedSurvey.creatorId}</p>
+              <ul>
+                {selectedSurvey.questions && selectedSurvey.questions.map((question, index) => (
+                <li key={index}>{question.text}
+                  {question.responses && (
+                  <ul>{question.responses.map((response, responseIndex)     => (
+                    <li key={responseIndex}>{response.text}</li>
+                  ))}
+                  </ul>
+                  )}
+                </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {isSurveyToPassVisible && <SurveyToPass survey={selectedSurveyToPass} />}
+        </div>
       </div>
-      <div className="all-surveys-div">
-        <h5>Всі опитування</h5>
-      {allSurveys.length > 0 ? (
-        allSurveys.map((survey) =>(
-          <h4 key={survey.id}>{survey.title}</h4>
-        ))
-      ):(
-      <p>Немає опитувань</p>
-      )}
-      </div>
-      {isCreateSurveyVisible && <CreateSurvey id={id} />}
-      <button
-        className="create-surveys-button"
-        onClick={() => setIsCreateSurveyVisible(!isCreateSurveyVisible)}
-      >
-        {!isCreateSurveyVisible ? "Створити опитування" : "Відмінити"}
-      </button>
-      {selectedSurvey && (
-  <div>
-    <h4>{selectedSurvey.title}</h4>
-    <p>Автор ID: {selectedSurvey.creatorId}</p>
-    <ul>
-  {selectedSurvey.questions && selectedSurvey.questions.map((question, index) => (
-    <li key={index}>{question.text}
-      {question.responses && (
-        <ul>
-          {question.responses.map((response, responseIndex) => (
-            <li key={responseIndex}>{response.text}</li>
-          ))}
-        </ul>
-      )}
-    </li>
-  ))}
-</ul>
-
   </div>
-)}
 
-    </div>
-  );
-}
+      )};
 
 export default MainPage;

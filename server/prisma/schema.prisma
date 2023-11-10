@@ -44,7 +44,7 @@ model Response {
   text         String
   questionId   Int
   respondentId Int?
-  chosenCount  Int?     @default(0)
+  chosenCount  Int     @default(0)
   question     Question @relation(fields: [questionId], references: [id])
   respondent   User?    @relation(fields: [respondentId], references: [id])
 
